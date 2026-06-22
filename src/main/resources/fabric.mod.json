@@ -1,0 +1,32 @@
+{
+	"schemaVersion": 1,
+	"id": "yuri-asmr",
+	"version": "${version}",
+	"name": "yuri asmr",
+	"description": "fetch n play mommy, girlfriend n general asmr duos straight from youtube. audio only.",
+	"authors": [
+		"vlensys"
+	],
+	"contact": {
+		"homepage": "https://github.com/vlensys/yuri-asmr",
+		"sources": "https://github.com/vlensys/yuri-asmr"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/yuri-asmr/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			{
+				"value": "vlensys.yuriasmr.client.YuriAsmrClient",
+				"adapter": "kotlin"
+			}
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.1.2",
+		"java": ">=25",
+		"fabric-api": "*",
+		"fabric-language-kotlin": "*"
+	}
+}
