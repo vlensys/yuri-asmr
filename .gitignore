@@ -43,3 +43,8 @@ replay_*.log
 
 CLAUDE.md
 claude.md
+
+# loom decompiled minecraft sources
+
+.gradle/loom-cache/
+*-sources.jar
