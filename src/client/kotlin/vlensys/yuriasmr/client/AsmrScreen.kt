@@ -67,7 +67,7 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 			if (v.isNotEmpty()) {
 				AsmrConfig.lastSearch = v
 				AsmrConfig.save()
-				if (isUrl(v)) Player.playUrl(v) else Player.playSearch(v)
+				if (isUrl(v)) Player.playUrl(if (v.startsWith("http")) v else "https://$v") else Player.playSearch(v)
 			}
 		}
 		y += 22
@@ -138,7 +138,8 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 		)
 	}
 
-	private fun isUrl(s: String) = s.startsWith("http://") || s.startsWith("https://")
+	private fun isUrl(s: String) = s.startsWith("http://") || s.startsWith("https://") ||
+		Regex("""^[\w-]+(\.[\w-]+)+(/.*)?$""").matches(s)
 
 	private fun qualityLabel() = Component.literal("quality: ${AsmrConfig.quality.label}")
 
