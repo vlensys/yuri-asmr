@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component
 class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 	private lateinit var customBox: EditBox
 	private lateinit var pauseBtn: Button
+	private lateinit var uninstallBtn: Button
 	private lateinit var statusWidget: StringWidget
 
 	override fun init() {
@@ -58,10 +59,13 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 		addRenderableWidget(pauseBtn)
 		y += 22
 
-		btn("uninstall yt-dlp", cx - 100, y, 200) {
-			Status.line = if (Binaries.uninstallYtDlp()) "yt-dlp uninstalled" else "no yt-dlp to remove"
+		uninstallBtn = Button.builder(Component.literal("uninstall yt-dlp"), Button.OnPress {
+			Binaries.uninstallYtDlp()
+			Status.line = "yt-dlp uninstalled"
 			Chat.send(Status.line)
-		}
+		}).bounds(cx - 100, y, 200, 20).build()
+		uninstallBtn.visible = Binaries.ytDlpInstalled()
+		addRenderableWidget(uninstallBtn)
 
 		statusWidget = StringWidget(cx - 150, height - 14, 300, 12, Component.literal(Status.line), font)
 		addRenderableWidget(statusWidget)
@@ -70,6 +74,7 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 	override fun tick() {
 		pauseBtn.visible = Player.playing
 		pauseBtn.message = Component.literal(if (Player.paused) "resume" else "pause")
+		uninstallBtn.visible = Binaries.ytDlpInstalled()
 		statusWidget.message = Component.literal(Status.line)
 	}
 
