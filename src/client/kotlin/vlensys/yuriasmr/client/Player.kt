@@ -23,13 +23,16 @@ object Player {
 	@Volatile var paused = false
 		private set
 
+	@Volatile var title = ""
+		private set
+
 	val playing: Boolean get() = thread?.isAlive == true
 
 	val listening: Boolean get() = thread?.isAlive == true && line != null
 
-	fun playSearch(query: String) = start("ytsearch15:$query", search = true, label = query)
+	fun playSearch(query: String) = start("ytsearch15:$query", search = true)
 
-	fun playUrl(url: String) = start(url, search = false, label = url)
+	fun playUrl(url: String) = start(url, search = false)
 
 	fun setVolume(v: Float) {
 		line?.let { applyGain(it, v) }
@@ -55,31 +58,68 @@ object Player {
 		line = null
 		thread?.let { runCatching { it.interrupt() } }
 		thread = null
+		title = ""
 		Status.line = "stopped"
 	}
 
-	private fun start(input: String, search: Boolean, label: String) {
+	private fun start(input: String, search: Boolean) {
 		stop()
 		stopFlag = false
 		paused = false
+		title = ""
 		Status.line = "searching..."
-		val quality = AsmrConfig.quality
-		val t = Thread { run(input, search, quality, label) }
+		val t = Thread { run(input, search) }
 		t.isDaemon = true
 		t.name = "yuri-asmr-player"
 		thread = t
 		t.start()
 	}
 
-	private fun run(input: String, search: Boolean, quality: Quality, label: String) {
+	private fun run(input: String, search: Boolean) {
+		val item = if (search) Random.nextInt(1, 16) else 0
+		val resolved = try {
+			resolve(input, item)
+		} catch (e: Exception) {
+			if (!stopFlag) {
+				Status.line = "yt-dlp not working"
+				Chat.send("cant run yt-dlp, is it installed?")
+			}
+			return
+		}
+		if (stopFlag) return
+		if (resolved == null) {
+			if (!stopFlag) {
+				Status.line = "found nothing :("
+				Chat.send("couldnt find anything for that :(")
+			}
+			return
+		}
+		title = resolved.first
+		Status.line = "playing: ${resolved.first}"
+		Chat.send("now playing: ${resolved.first}")
+		stream(resolved.second)
+	}
+
+	private fun resolve(input: String, item: Int): Pair<String, String>? {
+		val args = mutableListOf(Binaries.ytDlp(), "-q", "--no-warnings")
+		if (item > 0) args.addAll(listOf("--playlist-items", item.toString()))
+		args.addAll(listOf("--print", "%(title)s", "--print", "%(webpage_url)s", input))
+		val proc = ProcessBuilder(args).redirectError(ProcessBuilder.Redirect.DISCARD).start()
+		val lines = proc.inputStream.bufferedReader().use { it.readLines() }
+		proc.waitFor()
+		val vidTitle = lines.getOrNull(0)?.takeIf { it.isNotBlank() } ?: return null
+		val url = lines.getOrNull(1)?.takeIf { it.isNotBlank() } ?: return null
+		return vidTitle to url
+	}
+
+	private fun stream(url: String) {
 		var bytesPlayed = 0L
 		var failedToStart = false
 		try {
-			val ytArgs = mutableListOf(
-				Binaries.ytDlp(), "-q", "--no-warnings", "--no-progress", "-f", quality.format
+			val ytArgs = listOf(
+				Binaries.ytDlp(), "-q", "--no-warnings", "--no-progress",
+				"-f", AsmrConfig.quality.format, "-o", "-", url
 			)
-			if (search) ytArgs.addAll(listOf("--playlist-items", Random.nextInt(1, 16).toString()))
-			ytArgs.addAll(listOf("-o", "-", input))
 			val ffArgs = listOf(
 				Binaries.ffmpeg(), "-hide_banner", "-loglevel", "error",
 				"-i", "pipe:0", "-vn", "-f", "s16le", "-ar", "44100", "-ac", "2", "pipe:1"
@@ -111,10 +151,6 @@ object Player {
 				val n = src.read(buf)
 				if (n < 0) break
 				if (n > 0) {
-					if (bytesPlayed == 0L) {
-						Status.line = "playing: $label"
-						Chat.send("now playing: $label")
-					}
 					out.write(buf, 0, n)
 					bytesPlayed += n
 				}
@@ -128,12 +164,12 @@ object Player {
 			if (!stopFlag) {
 				when {
 					failedToStart -> {
-						Status.line = "yt-dlp/ffmpeg not working"
-						Chat.send("cant run yt-dlp/ffmpeg, are they installed right?")
+						Status.line = "ffmpeg not working"
+						Chat.send("cant run ffmpeg, is it installed?")
 					}
 					bytesPlayed == 0L -> {
-						Status.line = "found nothing :("
-						Chat.send("couldnt find anything for that :(")
+						Status.line = "couldnt grab that audio :("
+						Chat.send("couldnt grab that audio :(")
 					}
 					else -> Status.line = "finished"
 				}

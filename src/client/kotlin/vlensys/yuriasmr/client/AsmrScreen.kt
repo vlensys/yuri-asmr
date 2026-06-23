@@ -22,13 +22,18 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 	private lateinit var customBox: EditBox
 	private lateinit var pauseBtn: Button
 	private lateinit var ytDlpBtn: Button
+	private lateinit var nowPlayingWidget: StringWidget
 	private lateinit var statusWidget: StringWidget
 
 	override fun init() {
 		val cx = width / 2
-		var y = 10
+		var y = 8
 
 		addRenderableWidget(StringWidget(cx - 100, y, 200, 12, Component.literal("yuri asmr"), font))
+		y += 13
+
+		nowPlayingWidget = StringWidget(cx - 150, y, 300, 12, Component.literal(""), font)
+		addRenderableWidget(nowPlayingWidget)
 		y += 16
 
 		addRenderableWidget(
@@ -53,10 +58,13 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 		customBox = EditBox(font, cx - 100, y, 140, 20, Component.literal("custom"))
 		customBox.setHint(Component.literal("youtube link or search..."))
 		customBox.setMaxLength(512)
+		if (AsmrConfig.lastSearch.isNotEmpty()) customBox.value = AsmrConfig.lastSearch
 		addRenderableWidget(customBox)
 		btn("fetch", cx + 44, y, 56) {
 			val v = customBox.value.trim()
 			if (v.isNotEmpty()) {
+				AsmrConfig.lastSearch = v
+				AsmrConfig.save()
 				if (isUrl(v)) Player.playUrl(v) else Player.playSearch(v)
 			}
 		}
@@ -97,7 +105,14 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 		pauseBtn.visible = Player.listening
 		pauseBtn.message = Component.literal(if (Player.paused) "resume" else "pause")
 		ytDlpBtn.message = ytDlpLabel()
+		nowPlayingWidget.message = Component.literal(nowPlayingLabel())
 		statusWidget.message = Component.literal(Status.line)
+	}
+
+	private fun nowPlayingLabel(): String {
+		if (!Player.playing || Player.title.isEmpty()) return ""
+		val t = Player.title
+		return "♪ " + if (t.length > 56) t.take(53) + "..." else t
 	}
 
 	override fun onClose() {
