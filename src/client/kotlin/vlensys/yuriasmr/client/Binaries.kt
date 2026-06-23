@@ -39,23 +39,26 @@ object Binaries {
 		(AsmrConfig.ytDlpPath.isNotBlank() || Files.exists(ytDlpFile)) &&
 			(AsmrConfig.ffmpegPath.isNotBlank() || Files.exists(ffmpegFile))
 
+	fun ytDlpInstalled(): Boolean = AsmrConfig.ytDlpPath.isNotBlank() || Files.exists(ytDlpFile)
+
+	fun uninstallYtDlp(): Boolean = runCatching { Files.deleteIfExists(ytDlpFile) }.getOrDefault(false)
+
 	fun install(log: (String) -> Unit): Boolean {
 		Files.createDirectories(binDir)
-		log("grabbing yt-dlp...")
+		log("installing yt-dlp")
 		download(ytDlpUrl(), ytDlpFile)
 		if (!windows) makeExecutable(ytDlpFile)
-		if (windows) {
-			log("grabbing ffmpeg... this ones chunky, hang tight")
-			installFfmpegWindows()
-		} else if (onPath("ffmpeg")) {
-			AsmrConfig.ffmpegPath = "ffmpeg"
-		} else {
-			log("couldnt auto grab ffmpeg on ur os, install it yourself (apt/brew install ffmpeg)")
+		log("yt-dlp installed")
+		log("installing ffmpeg")
+		val ffOk = when {
+			windows -> { installFfmpegWindows(); true }
+			onPath("ffmpeg") -> { AsmrConfig.ffmpegPath = "ffmpeg"; true }
+			else -> false
 		}
+		log(if (ffOk) "ffmpeg installed" else "couldnt grab ffmpeg, install it urself (apt/brew install ffmpeg)")
 		AsmrConfig.save()
-		val ok = installed()
-		log(if (ok) "all set :3" else "ffmpeg didnt make it, mod wont play till u sort that out")
-		return ok
+		log("done")
+		return installed()
 	}
 
 	private fun ytDlpUrl(): String = when {
