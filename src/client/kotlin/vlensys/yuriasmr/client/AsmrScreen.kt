@@ -21,7 +21,9 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 
 	private lateinit var customBox: EditBox
 	private lateinit var pauseBtn: Button
-	private lateinit var ytDlpBtn: Button
+	private lateinit var installBtn: Button
+	private lateinit var updateBtn: Button
+	private lateinit var uninstallBtn: Button
 	private lateinit var nowPlayingWidget: StringWidget
 	private lateinit var statusWidget: StringWidget
 
@@ -80,10 +82,13 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 		addRenderableWidget(pauseBtn)
 		y += 22
 
-		ytDlpBtn = Button.builder(ytDlpLabel(), Button.OnPress {
-			if (Binaries.ytDlpInstalled()) uninstall() else openSetup()
-		}).bounds(cx - 100, y, 200, 20).build()
-		addRenderableWidget(ytDlpBtn)
+		installBtn = Button.builder(Component.literal("install yt-dlp"), Button.OnPress { openSetup() }).bounds(cx - 100, y, 200, 20).build()
+		addRenderableWidget(installBtn)
+		updateBtn = Button.builder(Component.literal("update"), Button.OnPress { update() }).bounds(cx - 100, y, 95, 20).build()
+		addRenderableWidget(updateBtn)
+		uninstallBtn = Button.builder(Component.literal("uninstall"), Button.OnPress { uninstall() }).bounds(cx + 5, y, 95, 20).build()
+		addRenderableWidget(uninstallBtn)
+		refreshYtDlpButtons()
 
 		addRenderableWidget(Button.builder(Component.literal("yuri"), Button.OnPress {
 			AsmrConfig.backgroundOn = !AsmrConfig.backgroundOn
@@ -104,9 +109,16 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 	override fun tick() {
 		pauseBtn.visible = Player.listening
 		pauseBtn.message = Component.literal(if (Player.paused) "resume" else "pause")
-		ytDlpBtn.message = ytDlpLabel()
+		refreshYtDlpButtons()
 		nowPlayingWidget.message = Component.literal(nowPlayingLabel())
 		statusWidget.message = Component.literal(Status.line)
+	}
+
+	private fun refreshYtDlpButtons() {
+		val on = Binaries.ytDlpInstalled()
+		installBtn.visible = !on
+		updateBtn.visible = on
+		uninstallBtn.visible = on
 	}
 
 	private fun nowPlayingLabel(): String {
@@ -130,8 +142,6 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 
 	private fun qualityLabel() = Component.literal("quality: ${AsmrConfig.quality.label}")
 
-	private fun ytDlpLabel() = Component.literal(if (Binaries.ytDlpInstalled()) "uninstall yt-dlp" else "install yt-dlp")
-
 	private fun openSetup() {
 		val mc = Minecraft.getInstance()
 		mc.setScreen(SetupScreen(
@@ -149,6 +159,16 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 			Status.line = if (ok) "yt-dlp uninstalled" else "couldnt remove yt-dlp, is it in use?"
 			Chat.send(Status.line)
 		}.apply { isDaemon = true; name = "yuri-asmr-uninstall" }.start()
+	}
+
+	private fun update() {
+		Player.stop()
+		Status.line = "updating yt-dlp..."
+		Thread {
+			val ok = Binaries.updateYtDlp()
+			Status.line = if (ok) "yt-dlp updated" else "couldnt update yt-dlp"
+			Chat.send(Status.line)
+		}.apply { isDaemon = true; name = "yuri-asmr-update" }.start()
 	}
 
 	private inner class VolumeSlider(x: Int, y: Int, w: Int, h: Int) :

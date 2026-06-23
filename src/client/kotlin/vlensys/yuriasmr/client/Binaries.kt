@@ -52,6 +52,14 @@ object Binaries {
 		return !Files.exists(ytDlpFile)
 	}
 
+	fun updateYtDlp(): Boolean = runCatching {
+		val proc = ProcessBuilder(ytDlp(), "-U")
+			.redirectOutput(ProcessBuilder.Redirect.DISCARD)
+			.redirectError(ProcessBuilder.Redirect.DISCARD)
+			.start()
+		proc.waitFor(120, TimeUnit.SECONDS) && proc.exitValue() == 0
+	}.getOrDefault(false)
+
 	fun install(log: (String) -> Unit): Boolean {
 		Files.createDirectories(binDir)
 		if (ytDlpInstalled()) {
