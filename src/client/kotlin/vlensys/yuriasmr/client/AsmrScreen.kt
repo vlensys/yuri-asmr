@@ -9,17 +9,22 @@ import net.minecraft.client.gui.components.StringWidget
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.network.chat.Component
-import org.lwjgl.system.MemoryStack
-import org.lwjgl.util.tinyfd.TinyFileDialogs
+import net.minecraft.resources.Identifier
+import vlensys.yuriasmr.YuriAsmr
 
 class AsmrScreen : Screen(Component.literal("yuri asmr")) {
+	private companion object {
+		val BG: Identifier = YuriAsmr.id("textures/gui/background.png")
+		const val BG_W = 3840
+		const val BG_H = 2400
+	}
+
 	private lateinit var customBox: EditBox
 	private lateinit var pauseBtn: Button
 	private lateinit var ytDlpBtn: Button
 	private lateinit var statusWidget: StringWidget
 
 	override fun init() {
-		Background.ensureLoaded()
 		val cx = width / 2
 		var y = 10
 
@@ -71,10 +76,11 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 			if (Binaries.ytDlpInstalled()) uninstall() else openSetup()
 		}).bounds(cx - 100, y, 200, 20).build()
 		addRenderableWidget(ytDlpBtn)
-		y += 22
 
-		addRenderableWidget(Button.builder(Component.literal("set bg"), Button.OnPress { pickBackground() }).bounds(cx - 100, y, 95, 20).build())
-		addRenderableWidget(Button.builder(Component.literal("reset bg"), Button.OnPress { resetBackground() }).bounds(cx + 5, y, 95, 20).build())
+		addRenderableWidget(Button.builder(Component.literal("yuri"), Button.OnPress {
+			AsmrConfig.backgroundOn = !AsmrConfig.backgroundOn
+			AsmrConfig.save()
+		}).bounds(4, height - 24, 50, 20).build())
 
 		statusWidget = StringWidget(cx - 150, height - 14, 300, 12, Component.literal(Status.line), font)
 		addRenderableWidget(statusWidget)
@@ -82,8 +88,8 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 
 	override fun extractBackground(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float) {
 		super.extractBackground(graphics, mouseX, mouseY, partialTick)
-		if (Background.loaded) {
-			graphics.blit(RenderPipelines.GUI_TEXTURED, Background.id, 0, 0, 0f, 0f, width, height, Background.texW, Background.texH, Background.texW, Background.texH)
+		if (AsmrConfig.backgroundOn) {
+			graphics.blit(RenderPipelines.GUI_TEXTURED, BG, 0, 0, 0f, 0f, width, height, BG_W, BG_H, BG_W, BG_H)
 		}
 	}
 
@@ -128,35 +134,6 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 			Status.line = if (ok) "yt-dlp uninstalled" else "couldnt remove yt-dlp, is it in use?"
 			Chat.send(Status.line)
 		}.apply { isDaemon = true; name = "yuri-asmr-uninstall" }.start()
-	}
-
-	private fun pickBackground() {
-		Thread {
-			val path = runCatching { openPngDialog() }.getOrNull()
-			if (!path.isNullOrBlank()) {
-				val mc = Minecraft.getInstance()
-				mc.execute {
-					Background.set(path)
-					Status.line = if (Background.loaded) "background set" else "couldnt load that png :("
-					Chat.send(Status.line)
-				}
-			}
-		}.apply { isDaemon = true; name = "yuri-asmr-bgpick" }.start()
-	}
-
-	private fun openPngDialog(): String? {
-		MemoryStack.stackPush().use { stack ->
-			val filters = stack.mallocPointer(1)
-			filters.put(stack.UTF8("*.png"))
-			filters.flip()
-			return TinyFileDialogs.tinyfd_openFileDialog("pick a background png", "", filters, "png images", false)
-		}
-	}
-
-	private fun resetBackground() {
-		Background.clear()
-		Status.line = "background reset"
-		Chat.send(Status.line)
 	}
 
 	private inner class VolumeSlider(x: Int, y: Int, w: Int, h: Int) :

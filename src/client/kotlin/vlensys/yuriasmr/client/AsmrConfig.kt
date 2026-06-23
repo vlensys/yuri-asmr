@@ -24,7 +24,7 @@ object AsmrConfig {
 	var firstLaunchDone: Boolean = false
 	var ytDlpPath: String = ""
 	var ffmpegPath: String = ""
-	var backgroundPath: String = ""
+	var backgroundOn: Boolean = false
 
 	fun load() {
 		if (!Files.exists(file)) return
@@ -37,7 +37,7 @@ object AsmrConfig {
 		firstLaunchDone = p.getProperty("firstLaunchDone", "false").toBoolean()
 		ytDlpPath = p.getProperty("ytDlpPath", "")
 		ffmpegPath = p.getProperty("ffmpegPath", "")
-		backgroundPath = p.getProperty("backgroundPath", "")
+		backgroundOn = p.getProperty("backgroundOn", "false").toBoolean()
 	}
 
 	fun save() {
@@ -50,7 +50,7 @@ object AsmrConfig {
 		p.setProperty("firstLaunchDone", firstLaunchDone.toString())
 		p.setProperty("ytDlpPath", ytDlpPath)
 		p.setProperty("ffmpegPath", ffmpegPath)
-		p.setProperty("backgroundPath", backgroundPath)
+		p.setProperty("backgroundOn", backgroundOn.toString())
 		Files.newOutputStream(file).use { p.store(it, null) }
 	}
 }
