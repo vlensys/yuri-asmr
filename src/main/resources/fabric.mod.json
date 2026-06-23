@@ -3,7 +3,7 @@
 	"id": "yuri-asmr",
 	"version": "${version}",
 	"name": "yuri asmr",
-	"description": "fetch n play mommy, girlfriend n general asmr duos straight from youtube. audio only.",
+	"description": "it's in the name!",
 	"authors": [
 		"vlensys"
 	],
@@ -11,7 +11,7 @@
 		"homepage": "https://github.com/vlensys/yuri-asmr",
 		"sources": "https://github.com/vlensys/yuri-asmr"
 	},
-	"license": "CC0-1.0",
+	"license": "GPL v3",
 	"icon": "assets/yuri-asmr/icon.png",
 	"environment": "client",
 	"entrypoints": {
