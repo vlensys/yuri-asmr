@@ -41,21 +41,38 @@ object Binaries {
 
 	fun ytDlpInstalled(): Boolean = AsmrConfig.ytDlpPath.isNotBlank() || Files.exists(ytDlpFile)
 
-	fun uninstallYtDlp(): Boolean = runCatching { Files.deleteIfExists(ytDlpFile) }.getOrDefault(false)
+	fun ffmpegInstalled(): Boolean = AsmrConfig.ffmpegPath.isNotBlank() || Files.exists(ffmpegFile)
+
+	fun uninstallYtDlp(): Boolean {
+		repeat(5) {
+			runCatching { Files.deleteIfExists(ytDlpFile) }
+			if (!Files.exists(ytDlpFile)) return true
+			runCatching { Thread.sleep(150) }
+		}
+		return !Files.exists(ytDlpFile)
+	}
 
 	fun install(log: (String) -> Unit): Boolean {
 		Files.createDirectories(binDir)
-		log("installing yt-dlp")
-		download(ytDlpUrl(), ytDlpFile)
-		if (!windows) makeExecutable(ytDlpFile)
-		log("yt-dlp installed")
-		log("installing ffmpeg")
-		val ffOk = when {
-			windows -> { installFfmpegWindows(); true }
-			onPath("ffmpeg") -> { AsmrConfig.ffmpegPath = "ffmpeg"; true }
-			else -> false
+		if (ytDlpInstalled()) {
+			log("yt-dlp already here")
+		} else {
+			log("installing yt-dlp")
+			download(ytDlpUrl(), ytDlpFile)
+			if (!windows) makeExecutable(ytDlpFile)
+			log("yt-dlp installed")
 		}
-		log(if (ffOk) "ffmpeg installed" else "couldnt grab ffmpeg, install it urself (apt/brew install ffmpeg)")
+		if (ffmpegInstalled()) {
+			log("ffmpeg already here")
+		} else {
+			log("installing ffmpeg")
+			val ffOk = when {
+				windows -> { installFfmpegWindows(); true }
+				onPath("ffmpeg") -> { AsmrConfig.ffmpegPath = "ffmpeg"; true }
+				else -> false
+			}
+			log(if (ffOk) "ffmpeg installed" else "couldnt grab ffmpeg, install it urself (apt/brew install ffmpeg)")
+		}
 		AsmrConfig.save()
 		log("done")
 		return installed()

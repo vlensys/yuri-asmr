@@ -16,10 +16,10 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 
 	override fun init() {
 		val cx = width / 2
-		var y = 14
+		var y = 10
 
 		addRenderableWidget(StringWidget(cx - 100, y, 200, 12, Component.literal("yuri asmr"), font))
-		y += 18
+		y += 16
 
 		addRenderableWidget(
 			Button.builder(qualityLabel(), Button.OnPress {
@@ -31,14 +31,14 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 		y += 22
 
 		addRenderableWidget(VolumeSlider(cx - 100, y, 200, 20))
-		y += 24
+		y += 22
 
 		btn("mommy asmr", cx - 100, y, 200) { Player.playSearch("mommy asmr") }
 		y += 22
 		btn("girlfriend asmr", cx - 100, y, 200) { Player.playSearch("girlfriend asmr") }
 		y += 22
 		btn("asmr", cx - 100, y, 200) { Player.playSearch("asmr") }
-		y += 24
+		y += 22
 
 		customBox = EditBox(font, cx - 100, y, 140, 20, Component.literal("custom"))
 		customBox.setHint(Component.literal("youtube link or search..."))
@@ -50,25 +50,20 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 				if (isUrl(v)) Player.playUrl(v) else Player.playSearch(v)
 			}
 		}
-		y += 24
+		y += 22
 
-		btn("stop", cx - 100, y, 95) { Player.stop() }
+		btn("stop", cx - 100, y, 200) { Player.stop() }
+		y += 22
+
 		pauseBtn = Button.builder(Component.literal("pause"), Button.OnPress {
 			if (Player.paused) Player.resume() else Player.pause()
-		}).bounds(cx + 5, y, 95, 20).build()
-		pauseBtn.visible = Player.playing
+		}).bounds(cx - 100, y, 200, 20).build()
+		pauseBtn.visible = Player.listening
 		addRenderableWidget(pauseBtn)
 		y += 22
 
 		ytDlpBtn = Button.builder(ytDlpLabel(), Button.OnPress {
-			if (Binaries.ytDlpInstalled()) {
-				Binaries.uninstallYtDlp()
-				Status.line = "yt-dlp uninstalled"
-				Chat.send(Status.line)
-				it.message = ytDlpLabel()
-			} else {
-				openSetup()
-			}
+			if (Binaries.ytDlpInstalled()) uninstall() else openSetup()
 		}).bounds(cx - 100, y, 200, 20).build()
 		addRenderableWidget(ytDlpBtn)
 
@@ -77,7 +72,7 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 	}
 
 	override fun tick() {
-		pauseBtn.visible = Player.playing
+		pauseBtn.visible = Player.listening
 		pauseBtn.message = Component.literal(if (Player.paused) "resume" else "pause")
 		ytDlpBtn.message = ytDlpLabel()
 		statusWidget.message = Component.literal(Status.line)
@@ -107,6 +102,16 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 			onSkip = { mc.setScreen(AsmrScreen()) },
 			autoStart = true
 		))
+	}
+
+	private fun uninstall() {
+		Player.stop()
+		Status.line = "uninstalling yt-dlp..."
+		Thread {
+			val ok = Binaries.uninstallYtDlp()
+			Status.line = if (ok) "yt-dlp uninstalled" else "couldnt remove yt-dlp, is it in use?"
+			Chat.send(Status.line)
+		}.apply { isDaemon = true; name = "yuri-asmr-uninstall" }.start()
 	}
 
 	private inner class VolumeSlider(x: Int, y: Int, w: Int, h: Int) :

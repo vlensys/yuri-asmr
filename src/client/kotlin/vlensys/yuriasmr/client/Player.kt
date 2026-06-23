@@ -25,6 +25,8 @@ object Player {
 
 	val playing: Boolean get() = thread?.isAlive == true
 
+	val listening: Boolean get() = thread?.isAlive == true && line != null
+
 	fun playSearch(query: String) = start("ytsearch15:$query", search = true, label = query)
 
 	fun playUrl(url: String) = start(url, search = false, label = url)
