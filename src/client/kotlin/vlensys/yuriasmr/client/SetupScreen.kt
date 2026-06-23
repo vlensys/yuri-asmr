@@ -5,14 +5,21 @@ import net.minecraft.client.gui.components.StringWidget
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 
-class SetupScreen(private val onComplete: () -> Unit, private val onSkip: () -> Unit) :
-	Screen(Component.literal("yuri asmr setup")) {
+class SetupScreen(
+	private val onComplete: () -> Unit,
+	private val onSkip: () -> Unit,
+	private val autoStart: Boolean = false
+) : Screen(Component.literal("yuri asmr setup")) {
 
 	private var installing = false
 	private var completeAdded = false
 	private val logWidgets = mutableListOf<StringWidget>()
 
 	override fun init() {
+		if (autoStart && !installing) {
+			installing = true
+			Installer.start()
+		}
 		logWidgets.clear()
 		completeAdded = false
 		val cx = width / 2
