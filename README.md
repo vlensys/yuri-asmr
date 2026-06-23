@@ -1,20 +1,31 @@
+<div align="center">
+
 # yuri asmr
 
-fetch n play mommy, girlfriend n general asmr duos straight from youtube. audio only, nothing else.
+> it's in the name!
 
-## how to use
+<p align="center">
+  <img src="https://img.shields.io/github/downloads/vlensys/yuri-asmr/total?style=flat-square" alt="github downloads" />
+  <img src="https://img.shields.io/github/issues/vlensys/yuri-asmr?style=flat-square" alt="github issues" />
+</p>
 
-- `/yuriasmr` or press `O` to open the gui
-- pick a vibe (mommy / girlfriend / general asmr duos) or paste your own youtube link / search
-- three quality modes: fast, normal, quality
-- hit stop whenever
+<img width="549" height="492" alt="image" src="https://github.com/user-attachments/assets/f5b25c80-3a8b-484e-8750-623d46971686" />
 
-first time you load in, the mod offers to auto grab `yt-dlp` + `ffmpeg` for you. say no and the mod is kinda useless, but its your call.
+</div>
 
-## controls
+## ...what?
 
-theres a `yuri asmr` section in controls. `O` is the default key, rebind it however you want.
+essentially, this is just a mod to fetch youtube asmr video audios, and play them!
 
-## license
+## how it works
 
-CC0-1.0, do whatever.
+basically, once you install the mod and hop into a world, you'll get a lil chat message thanking you for installing. from there just do /yuriasmr (or press O) and the gui pops open! (O is just the default btw, you can rebind it in controls under the yuri asmr section)
+
+first time you open it, the mod checks if you've got yt-dlp, thats the thing that actually grabs the audio off youtube. no yt-dlp? it'll ask if it can install it for you. hit install and it pulls down yt-dlp + ffmpeg into the mod folder. say no thanks and... the mod wont obviously work, at all...
+
+also theres a cool button named yuri, pls press it
+
+### actually playing stuff
+
+there's three options: mommy asmr, girlfriend asmr, and just asmr. clicking one will search youtub and grab the audio.
+you can also just search or paste a yt link there urself.
