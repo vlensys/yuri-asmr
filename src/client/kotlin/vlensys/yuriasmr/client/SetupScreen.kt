@@ -25,7 +25,9 @@ class SetupScreen(
 		val cx = width / 2
 		val cy = height / 2
 		if (!installing) {
-			addRenderableWidget(StringWidget(cx - 150, cy - 40, 300, 12, Component.literal("yuri asmr needs yt-dlp to work. grab it?"), font))
+			addRenderableWidget(StringWidget(cx - 150, cy - 52, 300, 12, Component.literal("yuri asmr needs yt-dlp to work. grab it?"), font))
+			addRenderableWidget(StringWidget(cx - 150, cy - 38, 300, 12, Component.literal("downloads yt-dlp + ffmpeg from their official github"), font))
+			addRenderableWidget(StringWidget(cx - 150, cy - 27, 300, 12, Component.literal("releases over https. they run as programs on your pc."), font))
 			addRenderableWidget(Button.builder(Component.literal("install"), Button.OnPress { startInstall() }).bounds(cx - 100, cy - 12, 200, 20).build())
 			addRenderableWidget(Button.builder(Component.literal("no thanks"), Button.OnPress { onSkip() }).bounds(cx - 100, cy + 12, 200, 20).build())
 		} else {

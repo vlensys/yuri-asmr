@@ -27,6 +27,17 @@
 
 > also theres a cool button named yuri, pls press it
 
+### omg ur downloading stuff??? RAT!!!!!!!!!!!!!!!!!!!!!!!!!
+
+:(
+
+hitting the install button pulls two programs from their official github, if you do not trust me, that's good! check the code of this mod AND check the code of [yt-dlp](https://github.com/yt-dlp/yt-dlp/releases/latest) and [FFmpeg](https://github.com/BtbN/FFmpeg-Builds/releases/latest)
+
+- **[yt-dlp](https://github.com/yt-dlp/yt-dlp/releases/latest)** - fetches the audio youtube
+- **[ffmpeg](https://github.com/BtbN/FFmpeg-Builds/releases/latest)** - decodes the audio
+
+by the way, if you're on mac/gnu/bsd/whatever you may need to manually install these two
+
 ### actually playing stuff
 
 - there's three options: mommy asmr, girlfriend asmr, and just asmr. clicking one will search youtub and grab the audio. you can also just search or paste a yt link there urself.
