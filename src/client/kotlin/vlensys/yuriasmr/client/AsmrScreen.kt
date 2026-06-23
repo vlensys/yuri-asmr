@@ -84,9 +84,9 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 
 		installBtn = Button.builder(Component.literal("install yt-dlp"), Button.OnPress { openSetup() }).bounds(cx - 100, y, 200, 20).build()
 		addRenderableWidget(installBtn)
-		updateBtn = Button.builder(Component.literal("update"), Button.OnPress { update() }).bounds(cx - 100, y, 95, 20).build()
+		updateBtn = Button.builder(Component.literal("update yt-dlp"), Button.OnPress { update() }).bounds(cx - 100, y, 95, 20).build()
 		addRenderableWidget(updateBtn)
-		uninstallBtn = Button.builder(Component.literal("uninstall"), Button.OnPress { uninstall() }).bounds(cx + 5, y, 95, 20).build()
+		uninstallBtn = Button.builder(Component.literal("uninstall yt-dlp"), Button.OnPress { uninstall() }).bounds(cx + 5, y, 95, 20).build()
 		addRenderableWidget(uninstallBtn)
 		refreshYtDlpButtons()
 
