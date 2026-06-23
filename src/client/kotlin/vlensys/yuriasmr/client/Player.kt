@@ -7,6 +7,10 @@ import javax.sound.sampled.SourceDataLine
 import kotlin.math.log10
 import kotlin.random.Random
 
+object Status {
+	@Volatile var line: String = ""
+}
+
 object Player {
 	private val format = AudioFormat(44100f, 16, 2, true, false)
 
@@ -15,6 +19,9 @@ object Player {
 	@Volatile private var ffProc: Process? = null
 	@Volatile private var line: SourceDataLine? = null
 	@Volatile private var stopFlag = false
+
+	@Volatile var paused = false
+		private set
 
 	val playing: Boolean get() = thread?.isAlive == true
 
@@ -26,18 +33,34 @@ object Player {
 		line?.let { applyGain(it, v) }
 	}
 
+	fun pause() {
+		line?.let { runCatching { it.stop() } }
+		paused = true
+		Status.line = "paused"
+	}
+
+	fun resume() {
+		line?.let { runCatching { it.start() } }
+		paused = false
+		Status.line = "resumed"
+	}
+
 	fun stop() {
 		stopFlag = true
+		paused = false
 		destroyProcs()
 		line?.let { runCatching { it.stop(); it.flush(); it.close() } }
 		line = null
 		thread?.let { runCatching { it.interrupt() } }
 		thread = null
+		Status.line = "stopped"
 	}
 
 	private fun start(input: String, search: Boolean, label: String) {
 		stop()
 		stopFlag = false
+		paused = false
+		Status.line = "searching..."
 		val quality = AsmrConfig.quality
 		val t = Thread { run(input, search, quality, label) }
 		t.isDaemon = true
@@ -78,6 +101,7 @@ object Player {
 			applyGain(out, AsmrConfig.volume)
 			out.start()
 			line = out
+			if (paused) runCatching { out.stop() }
 
 			val src = procs[1].inputStream
 			val buf = ByteArray(8192)
@@ -85,7 +109,10 @@ object Player {
 				val n = src.read(buf)
 				if (n < 0) break
 				if (n > 0) {
-					if (bytesPlayed == 0L) Chat.send("now playing: $label")
+					if (bytesPlayed == 0L) {
+						Status.line = "playing: $label"
+						Chat.send("now playing: $label")
+					}
 					out.write(buf, 0, n)
 					bytesPlayed += n
 				}
@@ -98,8 +125,15 @@ object Player {
 			line = null
 			if (!stopFlag) {
 				when {
-					failedToStart -> Chat.send("cant run yt-dlp/ffmpeg, are they installed right?")
-					bytesPlayed == 0L -> Chat.send("couldnt find anything for that :(")
+					failedToStart -> {
+						Status.line = "yt-dlp/ffmpeg not working"
+						Chat.send("cant run yt-dlp/ffmpeg, are they installed right?")
+					}
+					bytesPlayed == 0L -> {
+						Status.line = "found nothing :("
+						Chat.send("couldnt find anything for that :(")
+					}
+					else -> Status.line = "finished"
 				}
 			}
 		}

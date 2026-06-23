@@ -1,6 +1,5 @@
 package vlensys.yuriasmr.client
 
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.components.AbstractSliderButton
 import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.components.EditBox
@@ -10,13 +9,15 @@ import net.minecraft.network.chat.Component
 
 class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 	private lateinit var customBox: EditBox
+	private lateinit var pauseBtn: Button
+	private lateinit var statusWidget: StringWidget
 
 	override fun init() {
 		val cx = width / 2
-		var y = height / 6
+		var y = 14
 
 		addRenderableWidget(StringWidget(cx - 100, y, 200, 12, Component.literal("yuri asmr"), font))
-		y += 20
+		y += 18
 
 		addRenderableWidget(
 			Button.builder(qualityLabel(), Button.OnPress {
@@ -25,17 +26,17 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 				it.message = qualityLabel()
 			}).bounds(cx - 100, y, 200, 20).build()
 		)
-		y += 24
+		y += 22
 
 		addRenderableWidget(VolumeSlider(cx - 100, y, 200, 20))
-		y += 28
+		y += 24
 
-		btn("mommy asmr", cx - 100, y, 200) { tryPlay { Player.playSearch("mommy asmr") } }
+		btn("mommy asmr", cx - 100, y, 200) { Player.playSearch("mommy asmr") }
+		y += 22
+		btn("girlfriend asmr", cx - 100, y, 200) { Player.playSearch("girlfriend asmr") }
+		y += 22
+		btn("asmr", cx - 100, y, 200) { Player.playSearch("asmr") }
 		y += 24
-		btn("girlfriend asmr", cx - 100, y, 200) { tryPlay { Player.playSearch("girlfriend asmr") } }
-		y += 24
-		btn("general asmr duos", cx - 100, y, 200) { tryPlay { Player.playSearch("asmr duo") } }
-		y += 28
 
 		customBox = EditBox(font, cx - 100, y, 140, 20, Component.literal("custom"))
 		customBox.setHint(Component.literal("youtube link or search..."))
@@ -43,11 +44,33 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 		addRenderableWidget(customBox)
 		btn("fetch", cx + 44, y, 56) {
 			val v = customBox.value.trim()
-			if (v.isNotEmpty()) tryPlay { if (isUrl(v)) Player.playUrl(v) else Player.playSearch(v) }
+			if (v.isNotEmpty()) {
+				if (isUrl(v)) Player.playUrl(v) else Player.playSearch(v)
+			}
 		}
-		y += 28
+		y += 24
 
-		btn("stop", cx - 100, y, 200) { Player.stop() }
+		btn("stop", cx - 100, y, 95) { Player.stop() }
+		pauseBtn = Button.builder(Component.literal("pause"), Button.OnPress {
+			if (Player.paused) Player.resume() else Player.pause()
+		}).bounds(cx + 5, y, 95, 20).build()
+		pauseBtn.visible = Player.playing
+		addRenderableWidget(pauseBtn)
+		y += 22
+
+		btn("uninstall yt-dlp", cx - 100, y, 200) {
+			Status.line = if (Binaries.uninstallYtDlp()) "yt-dlp uninstalled" else "no yt-dlp to remove"
+			Chat.send(Status.line)
+		}
+
+		statusWidget = StringWidget(cx - 150, height - 14, 300, 12, Component.literal(Status.line), font)
+		addRenderableWidget(statusWidget)
+	}
+
+	override fun tick() {
+		pauseBtn.visible = Player.playing
+		pauseBtn.message = Component.literal(if (Player.paused) "resume" else "pause")
+		statusWidget.message = Component.literal(Status.line)
 	}
 
 	override fun onClose() {
@@ -59,11 +82,6 @@ class AsmrScreen : Screen(Component.literal("yuri asmr")) {
 		addRenderableWidget(
 			Button.builder(Component.literal(text), Button.OnPress { action() }).bounds(x, y, w, 20).build()
 		)
-	}
-
-	private fun tryPlay(action: () -> Unit) {
-		if (Binaries.installed()) action()
-		else Minecraft.getInstance().setScreen(InstallPromptScreen(this, action))
 	}
 
 	private fun isUrl(s: String) = s.startsWith("http://") || s.startsWith("https://")

@@ -16,6 +16,7 @@ object YuriAsmrClient : ClientModInitializer {
 	private lateinit var openKey: KeyMapping
 
 	@Volatile private var checkedThisSession = false
+	@Volatile private var setupSkipped = false
 
 	override fun onInitializeClient() {
 		AsmrConfig.load()
@@ -49,7 +50,17 @@ object YuriAsmrClient : ClientModInitializer {
 	}
 
 	private fun open() {
-		Minecraft.getInstance().setScreen(AsmrScreen())
+		val mc = Minecraft.getInstance()
+		mc.execute {
+			if (Binaries.ytDlpInstalled() || setupSkipped) {
+				mc.setScreen(AsmrScreen())
+			} else {
+				mc.setScreen(SetupScreen(
+					onComplete = { mc.setScreen(AsmrScreen()) },
+					onSkip = { setupSkipped = true; mc.setScreen(AsmrScreen()) }
+				))
+			}
+		}
 	}
 
 	private fun dontRemind() {
