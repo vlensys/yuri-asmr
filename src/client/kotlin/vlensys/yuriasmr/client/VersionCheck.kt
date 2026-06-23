@@ -56,7 +56,8 @@ object VersionCheck {
 		val repo = AsmrConfig.githubRepo
 		val mc = Minecraft.getInstance()
 		mc.execute {
-			val msg = Component.literal("[yuri asmr] heads up, ur behind!! u got $current, latest is $latest. ")
+			val msg = Component.literal("yuri asmr: heads up, ur behind!! u got $current, latest is $latest. ")
+				.withStyle(ChatFormatting.YELLOW)
 				.append(
 					Component.literal("[open github]").withStyle(
 						Style.EMPTY.withColor(ChatFormatting.AQUA).withUnderlined(true)
